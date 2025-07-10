@@ -7,27 +7,37 @@
 6. Когда возвращаемся к первой, должны продолжить с места остановки
 7. По завершению какой-либо функции возвращаем значение и удаляем из очереди.
 */
+#include <algorithm>
 #include <iostream>
 #include "Task.hpp"
+#include "TaskManager.hpp"
 
-void testTask(Task& ctx) {
-    std::cout << "[func] Started\n";
-    std::cout << "[func] Suspend task\n";
+void testTask1(Task& ctx) {
+    std::cout << "[func1] Started\n";
+    std::cout << "[func1] Suspend task\n";
     ctx.suspend();
-    std::cout << "[func] Resumed after main\n";
-    std::cout << "[func] Finished\n";
-
+    std::cout << "[func1] Resumed after main\n";
+    std::cout << "[func1] Finished\n";
 }
 
+void testTask2(Task& ctx) {
+    std::cout << "[func2] Started\n";
+    std::cout << "[func2] Suspend task\n";
+    ctx.suspend();
+    std::cout << "[func2] Resumed after main\n";
+    std::cout << "[func2] Not finished\n";
+    ctx.suspend();
+    std::cout << "[func2] Finished\n";
+}
+
+
+
 int main() {
-    std::cout << "[main] Started\n";
-    Task ctx(testTask);
-    std::cout << "[main] Init and run task\n";
-    ctx.initTask();
-    ctx.runTask();
-    std::cout << "[main] Back to the main after suspend\n";
-    std::cout << "[main] Resume task\n";
-    ctx.runTask();
-    std::cout << "[main] Back in main after task finished\n";
+    Task task1(testTask1);
+    Task task2(testTask2);
+    TaskManager manager{};
+    manager.addTask(task1);
+    manager.addTask(task2);
+    manager.run();
     return 0;
 }
