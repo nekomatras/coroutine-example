@@ -7,8 +7,8 @@
 6. Когда возвращаемся к первой, должны продолжить с места остановки
 7. По завершению какой-либо функции возвращаем значение и удаляем из очереди.
 */
-#include <algorithm>
 #include <iostream>
+#include <thread>
 #include "Task.hpp"
 #include "TaskManager.hpp"
 
@@ -30,14 +30,33 @@ void testTask2(Task& ctx) {
     std::cout << "[func2] Finished\n";
 }
 
+void testTask3(Task& ctx) {
+    std::cout << "[func3] Started\n";
+    while (true) {
+        sleep(1);
+        std::cout << "[func3] Do somethin\n";
+        ctx.suspend();
+    }
+}
 
+TaskManager manager{};
 
 int main() {
-    Task task1(testTask1);
-    Task task2(testTask2);
-    TaskManager manager{};
-    manager.addTask(task1);
-    manager.addTask(task2);
-    manager.run();
+    try {
+        auto task1 = new Task(testTask1);
+        auto task2 = new Task(testTask2);
+        auto task3 = new Task(testTask3);
+        manager.addTask(task1);
+        manager.addTask(task3);
+
+        std::thread t([&]() {
+            sleep(5);
+            manager.addTask(task2);
+        });
+
+        manager.run();
+    } catch (const std::exception& ex) {
+        std::cerr << ex.what() << std::endl;
+    }
     return 0;
 }

@@ -3,9 +3,8 @@
 #include <stdexcept>
 #include <ucontext.h>
 #include <functional>
-#include <optional>
+#include <iostream>
 
-//template<typename TResult = std::nullopt_t>
 class Task {
 
     //std::optional<TResult> result = std::nullopt;
@@ -23,6 +22,11 @@ class Task {
     static void taskWrapper(Task* ctx, bool* isFinished) {
         ctx->task(*ctx);
         *isFinished = true;
+        /* try {
+            
+        } catch (const std::exception& ex) {
+            std::cerr << ex.what() << std::endl;
+        } */
     }
 
 public:
@@ -33,25 +37,6 @@ public:
 
     ~Task() {}
 
-    /* std::enable_if_t<!std::is_same_v<TResult, std::nullopt_t>, bool>
-    hasResult() {
-        return result.has_value();
-    }
-
-    std::enable_if_t<!std::is_same_v<TResult, std::nullopt_t>, void>
-    saveResult(TResult result) {
-        this->result = result;
-    }
-
-    std::enable_if_t<!std::is_same_v<TResult, std::nullopt_t>, TResult>
-    getResult() {
-        if (result.has_value()) {
-            return result;
-        } else {
-            throw new std::runtime_error("There is no result yet");
-        }
-    } */
-
     bool isInitialized() {
         return isInited;
     }
@@ -60,7 +45,7 @@ public:
         return isFin;
     }
 
-    void initTask() {
+    void init() {
         if (!isInited) {
             getcontext(&ctx_func);
             ctx_func.uc_stack.ss_sp = stack_func;
@@ -69,6 +54,7 @@ public:
             makecontext(&ctx_func, (void (*)())taskWrapper, 2, this, &isFin);
             isInited = true;
         } else {
+            std::cerr << "Task reinitialized" << std::endl;
             throw new std::runtime_error("Task reinitialized");
         }
     }
@@ -77,6 +63,7 @@ public:
         if (isInited) {
             swapcontext(&ctx_main, &ctx_func);
         } else {
+            std::cerr << "Task uninitialized" << std::endl;
             throw new std::runtime_error("Task uninitialized");
         }
     }
@@ -85,6 +72,7 @@ public:
         if (isInited) {
             swapcontext(&ctx_func, &ctx_main);
         } else {
+            std::cerr << "Task uninitialized" << std::endl;
             throw new std::runtime_error("Task uninitialized");
         }
     }

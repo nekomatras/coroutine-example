@@ -5,52 +5,60 @@
 
 class TaskManager {
 
-    std::vector<Task> tasks;
-    bool isInProgress = false;
+    std::vector<Task*> runningTasks;
+    std::vector<Task*> tasksToExecute;
 
-    void initTasks() {
-        for (auto& task : tasks) {
-            if (!task.isInitialized()) {
-                task.initTask();
-            }
-        }
-    }
+
+    bool isInProgress = false;
 
 public:
 
     TaskManager() {}
     ~TaskManager() {}
 
-    void addTask(Task task) {
-        if (!isInProgress) {
-            tasks.push_back(task);
-        } else {
-            throw new std::runtime_error("Tasks already in progress");
-        }
+    void addTask(Task* task) {
+        tasksToExecute.push_back(task);
     }
 
     void run() {
         if (isInProgress) {
+            std::cerr << "Tasks already in progress" << std::endl;
             throw new std::runtime_error("Tasks already in progress");
         }
 
-        isInProgress = !tasks.empty();
-        initTasks();
+        isInProgress = true;
 
         while (isInProgress) {
 
-            for (auto& task : tasks) {
-                if (task.isInitialized() && !task.isFinished()) {
-                    task.runTask();
+            runningTasks.reserve(runningTasks.size() + tasksToExecute.size());
+            for (const auto task : tasksToExecute) {
+                runningTasks.push_back(task);
+            }
+            tasksToExecute.clear();
+
+            try {
+                for (auto& task : runningTasks) {
+                    if (!task->isInitialized()) {
+                        task->init();
+                    }
                 }
+
+                for (auto& task : runningTasks) {
+                    if (task->isInitialized() && !task->isFinished()) {
+                        task->runTask();
+                    }
+                }
+            } catch (const std::exception& ex) {
+                std::cerr << ex.what() << std::endl;
+                throw new std::runtime_error(ex.what());
             }
 
-            tasks.erase(
-                std::remove_if(tasks.begin(), tasks.end(), [](Task& task){ return task.isFinished(); }), 
-                tasks.end()
+            runningTasks.erase(
+                std::remove_if(runningTasks.begin(), runningTasks.end(), [](Task* task){ return task->isFinished(); }),
+                runningTasks.end()
             );
 
-            isInProgress = !tasks.empty();
+            isInProgress = !(runningTasks.empty() && tasksToExecute.empty());
         }
     }
 
