@@ -10,6 +10,7 @@
 #include <iostream>
 #include <thread>
 #include "Task.hpp"
+#include "Context.hpp"
 #include "TaskManager.hpp"
 
 void testTask1(Task& ctx) {
@@ -43,9 +44,9 @@ TaskManager manager{};
 
 int main() {
     try {
-        auto task1 = new Task(testTask1);
-        auto task2 = new Task(testTask2);
-        auto task3 = new Task(testTask3);
+        Task task1(testTask1);
+        Task task2(testTask2);
+        Task task3(testTask3);
         manager.addTask(task1);
         manager.addTask(task3);
 

@@ -1,79 +1,42 @@
 #pragma once
 
-#include <stdexcept>
-#include <ucontext.h>
 #include <functional>
-#include <iostream>
+#include <memory>
+
+class Context;
 
 class Task {
 
-    //std::optional<TResult> result = std::nullopt;
+    friend Context;
 
-    bool isInited = false;
     bool isFin = false;
 
-    constexpr static size_t STACK_SIZE = 8 * 1024;
-
-    ucontext_t ctx_main, ctx_func;
-    char stack_func[STACK_SIZE];
-
+    std::shared_ptr<Context> context;
     std::function<void(Task&)> task;
 
-    static void taskWrapper(Task* ctx, bool* isFinished) {
-        ctx->task(*ctx);
+    static void taskWrapper(Task* task, bool* isFinished) {
+        task->task(*task);
         *isFinished = true;
-        /* try {
-            
-        } catch (const std::exception& ex) {
-            std::cerr << ex.what() << std::endl;
-        } */
     }
 
 public:
 
-    Task(std::function<void(Task&)> task) {
-        this->task = task;
-    }
+    Task(std::function<void(Task&)> task, std::shared_ptr<Context> context);
+    Task(std::function<void(Task&)> task);
+    Task(const Task& task);
+    Task(Task&& task);
+    ~Task();
 
-    ~Task() {}
+    Task& operator=(const Task&) = default;
+    Task& operator=(Task&&) = default;
 
-    bool isInitialized() {
-        return isInited;
-    }
+    bool isInitialized();
 
-    bool isFinished() {
-        return isFin;
-    }
+    bool isFinished();
 
-    void init() {
-        if (!isInited) {
-            getcontext(&ctx_func);
-            ctx_func.uc_stack.ss_sp = stack_func;
-            ctx_func.uc_stack.ss_size = STACK_SIZE;
-            ctx_func.uc_link = &ctx_main;
-            makecontext(&ctx_func, (void (*)())taskWrapper, 2, this, &isFin);
-            isInited = true;
-        } else {
-            std::cerr << "Task reinitialized" << std::endl;
-            throw new std::runtime_error("Task reinitialized");
-        }
-    }
+    void init();
 
-    void runTask() {
-        if (isInited) {
-            swapcontext(&ctx_main, &ctx_func);
-        } else {
-            std::cerr << "Task uninitialized" << std::endl;
-            throw new std::runtime_error("Task uninitialized");
-        }
-    }
+    void runTask();
 
-    void suspend() {
-        if (isInited) {
-            swapcontext(&ctx_func, &ctx_main);
-        } else {
-            std::cerr << "Task uninitialized" << std::endl;
-            throw new std::runtime_error("Task uninitialized");
-        }
-    }
+    void suspend();
 };
