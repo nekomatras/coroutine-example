@@ -5,11 +5,11 @@
 #include "Task.hpp"
 #include "Context.hpp"
 
-Task::Task(std::function<void(Task&)> task, std::shared_ptr<Context> context)
+Task::Task(std::function<void(Context&)> task, std::shared_ptr<Context> context)
     : context(context)
     , task(task) {}
 
-Task::Task(std::function<void(Task&)> task)
+Task::Task(std::function<void(Context&)> task)
     : task(task) {
     context = std::make_shared<Context>();
 }

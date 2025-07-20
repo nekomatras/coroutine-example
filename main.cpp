@@ -13,7 +13,7 @@
 #include "Context.hpp"
 #include "TaskManager.hpp"
 
-void testTask1(Task& ctx) {
+void testTask1(Context& ctx) {
     std::cout << "[func1] Started\n";
     std::cout << "[func1] Suspend task\n";
     ctx.suspend();
@@ -21,7 +21,7 @@ void testTask1(Task& ctx) {
     std::cout << "[func1] Finished\n";
 }
 
-void testTask2(Task& ctx) {
+void testTask2(Context& ctx) {
     std::cout << "[func2] Started\n";
     std::cout << "[func2] Suspend task\n";
     ctx.suspend();
@@ -31,11 +31,11 @@ void testTask2(Task& ctx) {
     std::cout << "[func2] Finished\n";
 }
 
-void testTask3(Task& ctx) {
+void testTask3(Context& ctx) {
     std::cout << "[func3] Started\n";
     while (true) {
         sleep(1);
-        std::cout << "[func3] Do somethin\n";
+        std::cout << "[func3] Do somethin " << &ctx << std::endl;
         ctx.suspend();
     }
 }

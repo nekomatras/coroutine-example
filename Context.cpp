@@ -11,7 +11,7 @@ void Context::init(Task& task, bool& result) {
     ctx_func.uc_stack.ss_sp = stack_func;
     ctx_func.uc_stack.ss_size = STACK_SIZE;
     ctx_func.uc_link = &ctx_main;
-    makecontext(&ctx_func, (TFunc)Task::taskWrapper, 2, &task, &result);
+    makecontext(&ctx_func, (TFunc)Task::taskWrapper, 2, &task.task, this, &result);
     isInited = true;
 }
 

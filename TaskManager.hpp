@@ -49,7 +49,7 @@ public:
 
                 for (auto& task : runningTasks) {
                     if (task.isInitialized() && !task.isFinished()) {
-                        std::cout << "run" << std::endl;
+                        std::cout << "run " << &task << std::endl;
                         task.runTask();
                     }
                 }
