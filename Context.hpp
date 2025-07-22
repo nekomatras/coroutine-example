@@ -2,32 +2,45 @@
 
 #include <ucontext.h>
 #include <memory>
+#include "Controller.hpp"
 
-class Task;
+template <typename TAllocator = std::allocator<char>>
+class Context : Controller{
 
-class Context {
+    using TFunc = void (*)();
 
     constexpr static size_t STACK_SIZE = 8 * 1024;
 
     ucontext_t ctx_main, ctx_func;
 
-    char* stack_func = new char[STACK_SIZE];
-    //std::shared_ptr<char[]> stack_func = std::make_shared<char[]>(STACK_SIZE);
-
-    using TFunc = void (*)();
+    std::shared_ptr<char[]> stack_func = std::allocate_shared<char[]>(TAllocator{}, STACK_SIZE);
 
     bool isInited = false;
 
 public:
 
-    Context();
-    ~Context();
+Context() {}
+~Context() {}
 
-    void init(Task& task, bool& result);
+template <typename TTask>
+void init(TTask& task, bool& result) {
+    getcontext(&ctx_func);
+    ctx_func.uc_stack.ss_sp = stack_func.get();
+    ctx_func.uc_stack.ss_size = STACK_SIZE;
+    ctx_func.uc_link = &ctx_main;
+    makecontext(&ctx_func, (TFunc)TTask::taskWrapper, 2, &task.task, std::make_shared(this), &result);
+    isInited = true;
+}
 
-    bool isInitialized();
+bool isInitialized() {
+    return isInited;
+}
 
-    void run();
+void run() {
+    swapcontext(&ctx_main, &ctx_func);
+}
 
-    void suspend();
+void suspend() override{
+    swapcontext(&ctx_func, &ctx_main);
+}
 };

@@ -1,42 +1,95 @@
 #pragma once
 
+#include <stdexcept>
+#include <functional>
+#include <iostream>
 #include <functional>
 #include <memory>
+#include "Context.hpp"
 
-class Context;
-
+template <typename TAllocator = std::allocator<char>>
 class Task {
 
-    friend Context;
+    using TContext = Context<TAllocator>;
+    using TFunction = std::function<void(std::shared_ptr<Controller>&)>;
+
+    friend TContext;
 
     bool isFin = false;
 
-    std::shared_ptr<Context> context;
-    std::function<void(Context&)> task;
+    std::shared_ptr<TContext> context;
+    std::shared_ptr<Controller> controller
+        = reinterpret_cast<std::shared_ptr<Controller>>(context);
 
-    static void taskWrapper(std::function<void(Context&)> task, Context* context, bool* isFinished) {
-        task(*context);
+    TFunction task;
+
+    static void taskWrapper(TFunction task, std::shared_ptr<Controller>* controller, bool* isFinished) {
+        task(*controller);
         *isFinished = true;
     }
 
 public:
 
-    Task(std::function<void(Context&)> task, std::shared_ptr<Context> context);
-    Task(std::function<void(Context&)> task);
-    Task(const Task& task);
-    Task(Task&& task);
-    ~Task();
-
     Task& operator=(const Task&) = default;
     Task& operator=(Task&&) = default;
 
-    bool isInitialized();
+    Task(TFunction task, std::shared_ptr<TContext> context)
+    : context(context)
+    , task(task) {}
 
-    bool isFinished();
+    Task(TFunction task)
+        : task(task) {
+        context = std::make_shared<TContext>();
+    }
 
-    void init();
+    Task(const Task& task)
+        : task(task.task)
+        , context(task.context) {
+        std::cout << "cpy" << std::endl;
+    }
 
-    void runTask();
+    Task(Task&& task)
+        : task(std::move(task.task))
+        , context(std::move(task.context)) {
+        std::cout << "mv" << std::endl;
+    }
 
-    void suspend();
+    ~Task(){ std::cout << "~~~" << std::endl; };
+
+    bool isInitialized() {
+        return context->isInitialized();
+    }
+
+    bool isFinished() {
+        return isFin;
+    }
+
+    void init() {
+        if (!context->isInitialized()) {
+            context->init(*this, isFin);
+        } else {
+            std::cerr << "Task reinitialized" << std::endl;
+            throw new std::runtime_error("Task reinitialized");
+        }
+    }
+
+    void runTask() {
+        if (context->isInitialized()) {
+            context->run();
+        } else {
+            std::cerr << "Task uninitialized" << std::endl;
+            throw new std::runtime_error("Task uninitialized");
+        }
+    }
+
+    void suspend() {
+        if (context->isInitialized()) {
+            context->suspend();
+        } else {
+            std::cerr << "Task uninitialized" << std::endl;
+            throw new std::runtime_error("Task uninitialized");
+        }
+    }
 };
+
+using HeapTask = Task<>;

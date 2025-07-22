@@ -10,33 +10,33 @@
 #include <iostream>
 #include <thread>
 #include "Task.hpp"
-#include "Context.hpp"
 #include "TaskManager.hpp"
 
-void testTask1(Context& ctx) {
+
+void testTask1(std::shared_ptr<Controller>& ctx) {
     std::cout << "[func1] Started\n";
     std::cout << "[func1] Suspend task\n";
-    ctx.suspend();
+    ctx->suspend();
     std::cout << "[func1] Resumed after main\n";
     std::cout << "[func1] Finished\n";
 }
 
-void testTask2(Context& ctx) {
+void testTask2(std::shared_ptr<Controller>& ctx) {
     std::cout << "[func2] Started\n";
     std::cout << "[func2] Suspend task\n";
-    ctx.suspend();
+    ctx->suspend();
     std::cout << "[func2] Resumed after main\n";
     std::cout << "[func2] Not finished\n";
-    ctx.suspend();
+    ctx->suspend();
     std::cout << "[func2] Finished\n";
 }
 
-void testTask3(Context& ctx) {
+void testTask3(std::shared_ptr<Controller>& ctx) {
     std::cout << "[func3] Started\n";
     while (true) {
         sleep(1);
         std::cout << "[func3] Do somethin " << &ctx << std::endl;
-        ctx.suspend();
+        ctx->suspend();
     }
 }
 
@@ -44,9 +44,9 @@ TaskManager manager{};
 
 int main() {
     try {
-        Task task1(testTask1);
-        Task task2(testTask2);
-        Task task3(testTask3);
+        HeapTask task1(testTask1);
+        HeapTask task2(testTask2);
+        HeapTask task3(testTask3);
         manager.addTask(task1);
         manager.addTask(task3);
 

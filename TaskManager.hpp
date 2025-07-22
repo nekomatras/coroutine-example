@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Task.hpp"
-#include "Context.hpp"
 #include <vector>
 #include <iostream>
 
+template <typename TTask = HeapTask>
 class TaskManager {
 
-    std::vector<Task> runningTasks;
-    std::vector<Task> tasksToExecute;
+    std::vector<TTask> runningTasks;
+    std::vector<TTask> tasksToExecute;
 
 
     bool isInProgress = false;
@@ -18,22 +18,22 @@ public:
     TaskManager() {}
     ~TaskManager() {}
 
-    void addTask(Task& task) {
+    void addTask(TTask& task) {
         std::cout << "add" << std::endl;
         tasksToExecute.push_back(task);
     }
 
     void run() {
         if (isInProgress) {
-            std::cerr << "Tasks already in progress" << std::endl;
-            throw new std::runtime_error("Tasks already in progress");
+            std::cerr << "TTasks already in progress" << std::endl;
+            throw new std::runtime_error("TTasks already in progress");
         }
 
         isInProgress = true;
 
         while (isInProgress) {
 
-            //runningTasks.reserve(runningTasks.size() + tasksToExecute.size());
+            //runningTTasks.reserve(runningTTasks.size() + tasksToExecute.size());
             for (const auto task : tasksToExecute) {
                 runningTasks.push_back(task);
             }
@@ -62,7 +62,7 @@ public:
                 std::remove_if(
                     runningTasks.begin(),
                     runningTasks.end(),
-                    [](Task& task){ if (task.isFinished()) {std::cout << "rm" << std::endl;}; return task.isFinished(); }),
+                    [](TTask& task){ if (task.isFinished()) {std::cout << "rm" << std::endl;}; return task.isFinished(); }),
                 runningTasks.end()
             );
 
