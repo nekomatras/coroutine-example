@@ -9,9 +9,6 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add executable
-add_executable(coroutine_example main.cpp Task.cpp Context.cpp)
+add_executable(coroutine_example main.cpp)
 
 target_include_directories(coroutine_example PRIVATE ${PROJECT_SOURCE_DIR})
-
-# Link any libraries if necessary
-# target_link_libraries(MyProject some_library)

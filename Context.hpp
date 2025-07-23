@@ -28,7 +28,13 @@ void init(TTask& task, bool& result) {
     ctx_func.uc_stack.ss_sp = stack_func.get();
     ctx_func.uc_stack.ss_size = STACK_SIZE;
     ctx_func.uc_link = &ctx_main;
-    makecontext(&ctx_func, (TFunc)TTask::taskWrapper, 2, &task.task, std::make_shared(this), &result);
+    makecontext(
+        &ctx_func,
+        (TFunc)TTask::taskWrapper,
+        3,
+        std::reference_wrapper<typename TTask::TFunction>(task.task),
+        std::reference_wrapper<Controller>(*(reinterpret_cast<Controller*>(this))),
+        std::reference_wrapper<bool>(result));
     isInited = true;
 }
 

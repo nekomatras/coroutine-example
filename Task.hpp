@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <functional>
-#include <iostream>
 #include <functional>
 #include <memory>
 #include "Context.hpp"
@@ -11,21 +10,19 @@ template <typename TAllocator = std::allocator<char>>
 class Task {
 
     using TContext = Context<TAllocator>;
-    using TFunction = std::function<void(std::shared_ptr<Controller>&)>;
+    using TFunction = std::function<void(Controller&)>;
 
     friend TContext;
 
     bool isFin = false;
 
     std::shared_ptr<TContext> context;
-    std::shared_ptr<Controller> controller
-        = reinterpret_cast<std::shared_ptr<Controller>>(context);
 
     TFunction task;
 
-    static void taskWrapper(TFunction task, std::shared_ptr<Controller>* controller, bool* isFinished) {
-        task(*controller);
-        *isFinished = true;
+    static void taskWrapper(TFunction& task, Controller& controller, bool& isFinished) {
+        task(controller);
+        isFinished = true;
     }
 
 public:
@@ -44,17 +41,13 @@ public:
 
     Task(const Task& task)
         : task(task.task)
-        , context(task.context) {
-        std::cout << "cpy" << std::endl;
-    }
+        , context(task.context) {}
 
     Task(Task&& task)
         : task(std::move(task.task))
-        , context(std::move(task.context)) {
-        std::cout << "mv" << std::endl;
-    }
+        , context(std::move(task.context)) {}
 
-    ~Task(){ std::cout << "~~~" << std::endl; };
+    ~Task(){};
 
     bool isInitialized() {
         return context->isInitialized();
@@ -68,7 +61,6 @@ public:
         if (!context->isInitialized()) {
             context->init(*this, isFin);
         } else {
-            std::cerr << "Task reinitialized" << std::endl;
             throw new std::runtime_error("Task reinitialized");
         }
     }
@@ -77,7 +69,6 @@ public:
         if (context->isInitialized()) {
             context->run();
         } else {
-            std::cerr << "Task uninitialized" << std::endl;
             throw new std::runtime_error("Task uninitialized");
         }
     }
@@ -86,7 +77,6 @@ public:
         if (context->isInitialized()) {
             context->suspend();
         } else {
-            std::cerr << "Task uninitialized" << std::endl;
             throw new std::runtime_error("Task uninitialized");
         }
     }

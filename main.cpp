@@ -13,30 +13,30 @@
 #include "TaskManager.hpp"
 
 
-void testTask1(std::shared_ptr<Controller>& ctx) {
+void testTask1(Controller& ctx) {
     std::cout << "[func1] Started\n";
     std::cout << "[func1] Suspend task\n";
-    ctx->suspend();
+    ctx.suspend();
     std::cout << "[func1] Resumed after main\n";
     std::cout << "[func1] Finished\n";
 }
 
-void testTask2(std::shared_ptr<Controller>& ctx) {
+void testTask2(Controller& ctx) {
     std::cout << "[func2] Started\n";
     std::cout << "[func2] Suspend task\n";
-    ctx->suspend();
+    ctx.suspend();
     std::cout << "[func2] Resumed after main\n";
     std::cout << "[func2] Not finished\n";
-    ctx->suspend();
+    ctx.suspend();
     std::cout << "[func2] Finished\n";
 }
 
-void testTask3(std::shared_ptr<Controller>& ctx) {
+void testTask3(Controller& ctx) {
     std::cout << "[func3] Started\n";
     while (true) {
         sleep(1);
         std::cout << "[func3] Do somethin " << &ctx << std::endl;
-        ctx->suspend();
+        ctx.suspend();
     }
 }
 
@@ -55,7 +55,14 @@ int main() {
             manager.addTask(task2);
         });
 
-        manager.run();
+        std::thread mt([&]() {
+            manager.run();
+        });
+
+        while (true) {
+            std::cout << "main" << std::endl;
+            sleep(1);
+        }
     } catch (const std::exception& ex) {
         std::cerr << ex.what() << std::endl;
     }
